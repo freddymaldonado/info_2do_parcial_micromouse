@@ -37,18 +37,22 @@ extends RefCounted
 # (Laberinto.vacio), las celdas visitadas, las distancias del flood-fill y la
 # fase actual (EXPLORANDO / VOLVIENDO / SPEED_RUN).
 
-# TODO (PARCIAL · M1): necesitarás saber dónde está la meta. El tamaño del
-# laberinto y las metas son datos "del concurso" (se conocen de antemano):
-# game.gd te los entrega en preparar(). Las PAREDES no.
+# TODO (PARCIAL · M1): necesitarás saber dónde están la meta y el inicio. El
+# tamaño del laberinto, las metas y la celda de inicio son datos "del
+# concurso" (se conocen de antemano): game.gd te los entrega en preparar().
+# Las PAREDES no.
 var ancho: int = 0
 var alto: int = 0
 var metas: Array[Vector2i] = []
+var inicio: Vector2i = Vector2i.ZERO
 
 
-func preparar(ancho_: int, alto_: int, metas_: Array[Vector2i]) -> void:
+func preparar(ancho_: int, alto_: int, metas_: Array[Vector2i],
+		inicio_: Vector2i = Vector2i.ZERO) -> void:
 	ancho = ancho_
 	alto = alto_
 	metas = metas_
+	inicio = inicio_
 	# TODO (PARCIAL · M1): inicializa tu mapa descubierto y tu estado aquí.
 
 

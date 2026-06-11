@@ -42,7 +42,8 @@ func _ready() -> void:
 	raton.configurar(laberinto, ORIGEN, tam_celda)
 	if usar_cerebro_estudiante:
 		cerebro = CerebroEstudiante.new()
-		cerebro.preparar(laberinto.ancho, laberinto.alto, laberinto.metas)
+		cerebro.preparar(laberinto.ancho, laberinto.alto, laberinto.metas,
+				laberinto.inicio)
 	else:
 		cerebro = CerebroWallFollower.new()
 	# La vista derecha ("mapa del ratón") queda vacía hasta que la conectes:
