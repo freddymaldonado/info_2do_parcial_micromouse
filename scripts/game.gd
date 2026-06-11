@@ -13,7 +13,9 @@ extends Node2D
 @export var usar_cerebro_estudiante: bool = false
 
 const ORIGEN := Vector2(28, 44)
-const TAM_CELDA := 38.0
+# La vista de dios dispone de ~608 px; la celda se adapta al tamaño del
+# laberinto (38 px en los 16x16, más grande en los de entrenamiento).
+var tam_celda := 38.0
 
 var laberinto: Laberinto
 var cerebro = null
@@ -35,8 +37,9 @@ var cerebro = null
 
 func _ready() -> void:
 	laberinto = Laberinto.desde_archivo(archivo_laberinto)
-	vista_dios.configurar(laberinto, ORIGEN, TAM_CELDA)
-	raton.configurar(laberinto, ORIGEN, TAM_CELDA)
+	tam_celda = minf(56.0, 608.0 / maxf(laberinto.ancho, laberinto.alto))
+	vista_dios.configurar(laberinto, ORIGEN, tam_celda)
+	raton.configurar(laberinto, ORIGEN, tam_celda)
 	if usar_cerebro_estudiante:
 		cerebro = CerebroEstudiante.new()
 		cerebro.preparar(laberinto.ancho, laberinto.alto, laberinto.metas)
