@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/vista_laberinto.gd" id="2_vista"]
 [ext_resource type="Script" path="res://scripts/raton.gd" id="3_raton"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="4_hud"]
+[ext_resource type="Script" path="res://scripts/vista_mapa.gd" id="5_vmapa"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -13,7 +14,7 @@ script = ExtResource("2_vista")
 
 [node name="vista_mapa_raton" type="Node2D" parent="."]
 position = Vector2(672, 0)
-script = ExtResource("2_vista")
+script = ExtResource("5_vmapa")
 color_paredes = Color(0.55, 0.85, 1, 1)
 
 [node name="raton" type="Node2D" parent="."]
@@ -37,7 +38,7 @@ offset_left = 672.0
 offset_top = 10.0
 offset_right = 1124.0
 offset_bottom = 36.0
-text = "mapa del ratón (M2) — vacío hasta que lo conectes"
+text = "mapa del ratón (M2) — paredes descubiertas y rutas"
 
 [node name="hud" type="PanelContainer" parent="ui"]
 offset_left = 672.0
