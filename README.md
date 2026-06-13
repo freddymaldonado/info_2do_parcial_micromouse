@@ -1,5 +1,7 @@
 # Micromouse — 2do parcial
 
+**Freddy Maldonado Pereyra — Segundo Parcial Micromouse — Cod. UPB 59814**
+
 Pista B. Es el cerebro de un raton que no conoce el laberinto: lo explora
 sensando paredes, se arma su propio mapa con flood fill y al final corre directo
 al centro por la mejor ruta que encontro (speed run).
