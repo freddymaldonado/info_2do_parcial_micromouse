@@ -1,10 +1,7 @@
 extends PanelContainer
 
-# Panel lateral de telemetría. Las etiquetas ya existen; conéctalas a las
-# señales de game.gd, por ejemplo en _ready():
-#   var game = get_parent().get_parent()   # CanvasLayer -> Game
-#   game.pasos_cambiados.connect(update_pasos)
-#   game.fase_cambiada.connect(update_fase)
+# Panel lateral de telemetría (B1). Las etiquetas ya existen en la escena; aquí
+# nos conectamos a las señales de game.gd y refrescamos su texto en cada cambio.
 
 @onready var fase_label: Label = $margen/columna/fase_label
 @onready var pasos_label: Label = $margen/columna/pasos_label
@@ -13,27 +10,35 @@ extends PanelContainer
 @onready var record_label: Label = $margen/columna/record_label
 
 
+func _ready() -> void:
+	# CanvasLayer -> Game: nos suscribimos a las señales de telemetría.
+	var game = get_parent().get_parent()
+	game.pasos_cambiados.connect(update_pasos)
+	game.visitadas_cambiadas.connect(update_visitadas)
+	game.fase_cambiada.connect(update_fase)
+	game.tiempo_cambiado.connect(update_tiempo)
+	game.record_cambiado.connect(update_record)
+
+
 func update_fase(nombre: String) -> void:
-	# TODO (PARCIAL · B3): refleja la fase actual (EXPLORANDO, SPEED RUN...).
-	pass
+	fase_label.text = "fase: " + nombre
 
 
 func update_pasos(pasos: int) -> void:
-	# TODO (PARCIAL · B1): refleja los pasos en pasos_label.text.
-	pass
+	pasos_label.text = "pasos: %d" % pasos
 
 
 func update_visitadas(cantidad: int) -> void:
-	# TODO (PARCIAL · B1): refleja las celdas visitadas (y, si quieres, el
-	# porcentaje del laberinto explorado).
-	pass
+	visitadas_label.text = "visitadas: %d" % cantidad
 
 
 func update_tiempo(segundos: float) -> void:
-	# TODO (PARCIAL · B1): cronómetro de la corrida.
-	pass
+	tiempo_label.text = "tiempo: %.1f s" % segundos
 
 
 func update_record(pasos: int) -> void:
-	# TODO (PARCIAL · M4): mejor marca guardada para el laberinto actual.
-	pass
+	# -1 significa que todavía no hay récord guardado para este laberinto (M4).
+	if pasos < 0:
+		record_label.text = "récord: —"
+	else:
+		record_label.text = "récord: %d" % pasos
