@@ -21,6 +21,9 @@ signal corrida_terminada(exito: bool, pasos_expl: int, pasos_speed: int)
 const ORIGEN := Vector2(28, 44)
 const VELOCIDADES := [1.0, 2.0, 4.0]
 const RUTA_RECORDS := "user://records.json"
+# Bonus: parámetros de la sacudida de pantalla al chocar.
+const SHAKE_DUR := 0.35
+const SHAKE_MAG := 8.0
 
 var tam_celda := 38.0
 var laberinto: Laberinto
@@ -49,12 +52,20 @@ var snd_meta: AudioStreamPlayer
 var selector: OptionButton
 var pantalla_final: ColorRect
 var label_final: Label
+# Bonus (juice): cámara para la sacudida, estela del ratón y botón de heat-map.
+var camara: Camera2D
+var estela: Estela
+var boton_heatmap: Button
+var shake_tiempo: float = 0.0
 
 
 func _ready() -> void:
 	_crear_sonidos()
 	_crear_selector()
+	_crear_boton_heatmap()
 	_crear_pantalla_final()
+	_crear_camara()
+	_crear_estela()
 	_cargar_records()
 	raton.choque.connect(_on_raton_choque)
 	_iniciar_corrida()
@@ -66,6 +77,7 @@ func _iniciar_corrida() -> void:
 	tam_celda = minf(56.0, 608.0 / maxf(laberinto.ancho, laberinto.alto))
 	vista_dios.configurar(laberinto, ORIGEN, tam_celda)
 	raton.configurar(laberinto, ORIGEN, tam_celda)
+	estela.limpiar()  # bonus: borra la estela de la corrida anterior
 	es_estudiante = usar_cerebro_estudiante
 	if es_estudiante:
 		cerebro = CerebroEstudiante.new()
@@ -100,6 +112,7 @@ func _process(delta: float) -> void:
 	if corriendo and fase_actual != "FIN":
 		tiempo += delta
 		tiempo_cambiado.emit(tiempo)
+	_actualizar_sacudida(delta)
 
 
 func _on_paso_timer_timeout() -> void:
@@ -117,6 +130,7 @@ func _tick() -> void:
 	if raton.pasos > pasos_previos:
 		pasos_previos = raton.pasos
 		snd_paso.play()
+		estela.agregar(raton.position)  # bonus: estela del ratón
 	_emitir_telemetria()
 	if es_estudiante:
 		# M2: refrescamos la vista del mapa con lo nuevo que aprendió el ratón.
@@ -157,6 +171,7 @@ func _terminar() -> void:
 	# M4: el récord guarda los pasos del speed run (o de la corrida si es wall-follower).
 	_guardar_record(speed if es_estudiante else expl)
 	corrida_terminada.emit(true, expl, speed)
+	_celebrar()  # bonus: celebración en la meta
 	_mostrar_pantalla_final(expl, speed)
 
 
@@ -196,6 +211,7 @@ func _on_boton_reiniciar_pressed() -> void:
 func _on_raton_choque() -> void:
 	# B4: sonido de choque cuando el ratón intenta atravesar una pared.
 	snd_choque.play()
+	shake_tiempo = SHAKE_DUR  # bonus: sacudida al chocar
 
 
 # --- B4: sonidos creados por código ---
@@ -316,3 +332,64 @@ func _mostrar_pantalla_final(expl: int, speed: int) -> void:
 		texto += "Pasos: %d" % expl
 	label_final.text = texto
 	pantalla_final.visible = true
+
+
+# --- Bonus: juice (sacudida, estela, heat-map y celebración) ---
+
+func _crear_camara() -> void:
+	# Cámara fija (no recoloca la escena) que usamos solo para la sacudida.
+	camara = Camera2D.new()
+	camara.anchor_mode = Camera2D.ANCHOR_MODE_FIXED_TOP_LEFT
+	camara.position = Vector2.ZERO
+	add_child(camara)
+	camara.make_current()
+
+
+func _crear_estela() -> void:
+	estela = Estela.new()
+	add_child(estela)
+
+
+func _crear_boton_heatmap() -> void:
+	boton_heatmap = Button.new()
+	boton_heatmap.text = "Heat-map"
+	boton_heatmap.toggle_mode = true
+	boton_heatmap.position = Vector2(810, 8)
+	boton_heatmap.size = Vector2(120, 28)
+	boton_heatmap.toggled.connect(_on_heatmap_toggled)
+	$ui.add_child(boton_heatmap)
+
+
+func _on_heatmap_toggled(activado: bool) -> void:
+	# El mapa del ratón colorea las celdas por cuántas veces las pisó.
+	vista_mapa_raton.mostrar_heatmap = activado
+	vista_mapa_raton.queue_redraw()
+
+
+func _actualizar_sacudida(delta: float) -> void:
+	if shake_tiempo > 0.0:
+		shake_tiempo -= delta
+		var f = clampf(shake_tiempo / SHAKE_DUR, 0.0, 1.0)
+		camara.offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * SHAKE_MAG * f
+	else:
+		camara.offset = Vector2.ZERO
+
+
+func _celebrar() -> void:
+	# Ráfaga de partículas doradas en la meta al terminar.
+	if laberinto.metas.is_empty():
+		return
+	var fiesta = CPUParticles2D.new()
+	fiesta.position = vista_dios.celda_a_pixel(laberinto.metas[0])
+	fiesta.one_shot = true
+	fiesta.explosiveness = 0.9
+	fiesta.amount = 48
+	fiesta.lifetime = 1.2
+	fiesta.initial_velocity_min = 70.0
+	fiesta.initial_velocity_max = 180.0
+	fiesta.gravity = Vector2(0, 220)
+	fiesta.scale_amount_min = 2.0
+	fiesta.scale_amount_max = 4.0
+	fiesta.color = Color(1.0, 0.85, 0.3)
+	add_child(fiesta)
+	fiesta.emitting = true
