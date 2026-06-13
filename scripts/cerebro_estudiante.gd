@@ -54,7 +54,7 @@ func preparar(ancho_: int, alto_: int, metas_: Array[Vector2i],
 	mapa.inicio = inicio
 	mapa.metas = metas
 	visitadas = {}
-	visitadas[inicio] = true
+	visitadas[inicio] = 1
 	fase = "EXPLORANDO"
 	ruta_exploracion = []
 	ruta_exploracion.append(inicio)
@@ -167,7 +167,8 @@ func _anotar_paredes(raton: Raton) -> void:
 		mapa.poner_pared(c, (r + 1) % 4)
 	if raton.pared_izquierda():
 		mapa.poner_pared(c, (r + 3) % 4)
-	visitadas[c] = true
+	# Contamos cuántas veces pisamos cada celda (alimenta el heat-map, bonus).
+	visitadas[c] = int(visitadas.get(c, 0)) + 1
 
 
 # Flood-fill: distancia de cada celda a los objetivos sobre nuestro mapa.

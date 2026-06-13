@@ -15,6 +15,8 @@ var visitadas: Dictionary = {}
 var ruta_exploracion: Array = []
 var ruta_speed: Array = []
 var celda_raton: Vector2i = Vector2i.ZERO
+# Bonus: si está activo, las celdas se colorean por cuántas veces se pisaron.
+var mostrar_heatmap: bool = false
 
 @export var color_visitada := Color(0.20, 0.45, 0.38, 0.55)
 @export var color_no_visitada := Color(0.12, 0.12, 0.16, 1.0)
@@ -26,13 +28,21 @@ var celda_raton: Vector2i = Vector2i.ZERO
 func _draw() -> void:
 	if laberinto == null:
 		return
-	# Fondo: visitadas resaltadas, no visitadas oscuras (M2).
+	# Fondo: visitadas resaltadas, no visitadas oscuras (M2). Con heat-map activo,
+	# las visitadas se pintan según su número de visitas (bonus).
+	var max_visitas = 1
+	if mostrar_heatmap:
+		for v in visitadas.values():
+			max_visitas = max(max_visitas, int(v))
 	for fila in laberinto.alto:
 		for col in laberinto.ancho:
 			var celda = Vector2i(col, fila)
 			var rect = Rect2(origen + Vector2(celda) * tam, Vector2(tam, tam))
 			if visitadas.has(celda):
-				draw_rect(rect, color_visitada)
+				if mostrar_heatmap:
+					draw_rect(rect, _color_calor(int(visitadas[celda]), max_visitas))
+				else:
+					draw_rect(rect, color_visitada)
 			else:
 				draw_rect(rect, color_no_visitada)
 	# Rejilla tenue.
@@ -74,3 +84,13 @@ func _dibujar_ruta(ruta: Array, color: Color, grosor: float) -> void:
 		return
 	for i in range(ruta.size() - 1):
 		draw_line(celda_a_pixel(ruta[i]), celda_a_pixel(ruta[i + 1]), color, grosor)
+
+
+# Bonus heat-map: de azul frío (pocas visitas) a rojo caliente (muchas).
+func _color_calor(conteo: int, maximo: int) -> Color:
+	var t = clampf(float(conteo) / float(max(1, maximo)), 0.0, 1.0)
+	var frio = Color(0.15, 0.35, 0.70)
+	var caliente = Color(0.90, 0.20, 0.10)
+	var c = frio.lerp(caliente, t)
+	c.a = 0.65
+	return c
