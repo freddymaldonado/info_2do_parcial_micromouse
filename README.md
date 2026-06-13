@@ -53,6 +53,14 @@ pausada, para depurar), **Vel x1/x2/x4** y **Reiniciar**.
   tocar código y el mejor resultado (pasos del speed run) por laberinto se guarda
   en `user://records.json` y se muestra en el HUD.
 
+### Bonus (juice)
+- **Heat-map de visitas:** botón *Heat-map* que colorea el mapa del ratón por
+  cuántas veces pisó cada celda (azul frío → rojo caliente).
+- **Estela del ratón:** rastro que se desvanece detrás del ratón en la vista de
+  dios (`scripts/estela.gd`).
+- **Sacudida al chocar:** la pantalla tiembla cuando el ratón choca con una pared.
+- **Celebración en la meta:** ráfaga de partículas doradas al terminar la corrida.
+
 ## Recursos externos consultados
 
 El código es propio; consulté estos recursos para el concepto del algoritmo:
