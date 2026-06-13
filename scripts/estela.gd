@@ -1,9 +1,9 @@
 class_name Estela
 extends Node2D
 
-# Bonus (juice): la estela que el ratón deja atrás en la vista de dios. Guarda
-# los últimos puntos por los que pasó y los dibuja como una línea que se
-# desvanece (más vieja = más transparente).
+# bonus: la estela que va dejando el raton en la vista de dios. guardo los
+# ultimos puntos por donde paso y los dibujo como una linea que se va apagando
+# (mientras mas vieja, mas transparente).
 
 const MAX_PUNTOS := 60
 
@@ -28,7 +28,7 @@ func _draw() -> void:
 	if _puntos.size() < 2:
 		return
 	for i in range(_puntos.size() - 1):
-		# Los puntos más recientes (al final) se ven más opacos.
+		# los puntos mas nuevos (al final) se ven mas opacos
 		var t = float(i) / float(_puntos.size())
 		var c = Color(color.r, color.g, color.b, t * 0.6)
 		draw_line(_puntos[i], _puntos[i + 1], c, 3.0)

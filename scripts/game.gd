@@ -1,12 +1,12 @@
 extends Node2D
 
-# Controlador principal. Carga el laberinto, coloca al ratón y hace avanzar el
-# cerebro un paso por tick. Sobre el núcleo provisto (laberinto, sensado,
-# movimiento, vista de dios) añadimos lo que pedía el parcial:
-#   B1 telemetría, B2 controles, B3 máquina de estados + pantalla final,
-#   B4 sonidos, M2 mapa del ratón, M3 rutas/comparación, M4 selector + récords.
+# controlador principal. carga el lab, pone al raton y mueve al cerebro un paso
+# por tick. sobre lo que ya venia hecho (lab, sensado, movimiento, vista de dios)
+# le agregue lo del parcial: telemetria (B1), controles (B2), maquina de estados
+# y pantalla final (B3), sonidos (B4), mapa del raton (M2), rutas (M3) y el
+# selector con records (M4). mas los bonus de juice.
 
-# Señales de telemetría que escucha el HUD (B1/B3).
+# señales que escucha el hud
 signal pasos_cambiados(pasos: int)
 signal visitadas_cambiadas(cantidad: int)
 signal fase_cambiada(nombre: String)
@@ -15,13 +15,13 @@ signal record_cambiado(pasos: int)
 signal corrida_terminada(exito: bool, pasos_expl: int, pasos_speed: int)
 
 @export_file("*.maz") var archivo_laberinto: String = "res://mazes/01_entrenamiento.maz"
-# Activado por defecto: la entrega corre nuestro micromouse de verdad.
+# lo dejo prendido para que corra mi cerebro y no el de ejemplo
 @export var usar_cerebro_estudiante: bool = true
 
 const ORIGEN := Vector2(28, 44)
 const VELOCIDADES := [1.0, 2.0, 4.0]
 const RUTA_RECORDS := "user://records.json"
-# Bonus: parámetros de la sacudida de pantalla al chocar.
+# cuanto dura y cuanto se mueve la sacudida al chocar (bonus)
 const SHAKE_DUR := 0.35
 const SHAKE_MAG := 8.0
 
@@ -29,7 +29,7 @@ var tam_celda := 38.0
 var laberinto: Laberinto
 var cerebro = null
 
-# Estado de la corrida (B3).
+# estado de la corrida
 var fase_actual: String = "EXPLORANDO"
 var tiempo: float = 0.0
 var corriendo: bool = false
@@ -45,14 +45,14 @@ var records: Dictionary = {}
 @onready var boton_pausa: Button = $ui/hud/margen/columna/botones/boton_pausa
 @onready var boton_velocidad: Button = $ui/hud/margen/columna/botones/boton_velocidad
 
-# Creados por código (B4 sonidos, M4 selector, B3 pantalla final).
+# cosas que creo por codigo: sonidos, selector, pantalla final
 var snd_paso: AudioStreamPlayer
 var snd_choque: AudioStreamPlayer
 var snd_meta: AudioStreamPlayer
 var selector: OptionButton
 var pantalla_final: ColorRect
 var label_final: Label
-# Bonus (juice): cámara para la sacudida, estela del ratón y botón de heat-map.
+# cosas del bonus: camara para la sacudida, la estela y el boton de heat map
 var camara: Camera2D
 var estela: Estela
 var boton_heatmap: Button
@@ -71,19 +71,19 @@ func _ready() -> void:
 	_iniciar_corrida()
 
 
-# Arranca (o reinicia) una corrida completa con el laberinto actual.
+# arranca (o reinicia) una corrida nueva con el lab que este elegido
 func _iniciar_corrida() -> void:
 	laberinto = Laberinto.desde_archivo(archivo_laberinto)
 	tam_celda = minf(56.0, 608.0 / maxf(laberinto.ancho, laberinto.alto))
 	vista_dios.configurar(laberinto, ORIGEN, tam_celda)
 	raton.configurar(laberinto, ORIGEN, tam_celda)
-	estela.limpiar()  # bonus: borra la estela de la corrida anterior
+	estela.limpiar()  # borro la estela de la corrida anterior
 	es_estudiante = usar_cerebro_estudiante
 	if es_estudiante:
 		cerebro = CerebroEstudiante.new()
 		cerebro.preparar(laberinto.ancho, laberinto.alto, laberinto.metas,
 				laberinto.inicio)
-		# M2: la vista derecha dibuja el mapa que el cerebro va descubriendo.
+		# M2: la vista de la derecha dibuja el mapa que va descubriendo el cerebro
 		vista_mapa_raton.configurar(cerebro.mapa, ORIGEN, tam_celda)
 		vista_mapa_raton.visitadas = cerebro.visitadas
 		vista_mapa_raton.ruta_exploracion = cerebro.ruta_exploracion
@@ -108,7 +108,7 @@ func _iniciar_corrida() -> void:
 
 
 func _process(delta: float) -> void:
-	# Cronómetro de la corrida (B1): solo corre mientras no esté en pausa/fin.
+	# cronometro: solo cuenta si esta corriendo y no termino todavia
 	if corriendo and fase_actual != "FIN":
 		tiempo += delta
 		tiempo_cambiado.emit(tiempo)
@@ -119,21 +119,21 @@ func _on_paso_timer_timeout() -> void:
 	_tick()
 
 
-# Un paso del cerebro + actualización de telemetría, mapa y máquina de estados.
+# un paso del cerebro y de paso actualizo telemetria, mapa y la maquina de estados
 func _tick() -> void:
 	if raton.ocupado():
 		return
 	if fase_actual == "FIN":
 		return
 	cerebro.paso(raton)
-	# B4: tic de paso si el ratón realmente avanzó (raton.pasos solo sube al avanzar).
+	# tic de sonido solo si de verdad avanzo (raton.pasos sube nada mas al avanzar)
 	if raton.pasos > pasos_previos:
 		pasos_previos = raton.pasos
 		snd_paso.play()
-		estela.agregar(raton.position)  # bonus: estela del ratón
+		estela.agregar(raton.position)  # voy dejando la estela
 	_emitir_telemetria()
 	if es_estudiante:
-		# M2: refrescamos la vista del mapa con lo nuevo que aprendió el ratón.
+		# refresco la vista del mapa con lo nuevo que aprendio el raton
 		vista_mapa_raton.celda_raton = raton.celda
 		vista_mapa_raton.queue_redraw()
 		if cerebro.fase != fase_actual:
@@ -151,7 +151,7 @@ func _emitir_telemetria() -> void:
 	visitadas_cambiadas.emit(cantidad)
 
 
-# B3: máquina de estados (EXPLORANDO -> VOLVIENDO -> SPEED RUN -> FIN).
+# maquina de estados: EXPLORANDO -> VOLVIENDO -> SPEED RUN -> FIN
 func _cambiar_fase(nueva: String) -> void:
 	fase_actual = nueva
 	fase_cambiada.emit(nueva)
@@ -168,14 +168,14 @@ func _terminar() -> void:
 	if es_estudiante:
 		expl = cerebro.pasos_exploracion
 		speed = cerebro.pasos_speed
-	# M4: el récord guarda los pasos del speed run (o de la corrida si es wall-follower).
+	# guardo el record con los pasos del speed run (o de la corrida si es wall follower)
 	_guardar_record(speed if es_estudiante else expl)
 	corrida_terminada.emit(true, expl, speed)
-	_celebrar()  # bonus: celebración en la meta
+	_celebrar()  # fiesta de particulas en la meta
 	_mostrar_pantalla_final(expl, speed)
 
 
-# --- B2: controles de ejecución ---
+# --- botones del panel ---
 
 func _on_boton_pausa_pressed() -> void:
 	if fase_actual == "FIN":
@@ -190,7 +190,7 @@ func _on_boton_pausa_pressed() -> void:
 
 
 func _on_boton_paso_pressed() -> void:
-	# Solo con la corrida pausada: ejecuta UN paso del cerebro (depuración).
+	# solo si esta en pausa: doy un paso del cerebro para depurar
 	if corriendo or fase_actual == "FIN":
 		return
 	_tick()
@@ -209,12 +209,12 @@ func _on_boton_reiniciar_pressed() -> void:
 
 
 func _on_raton_choque() -> void:
-	# B4: sonido de choque cuando el ratón intenta atravesar una pared.
+	# suena el choque cuando intenta atravesar una pared
 	snd_choque.play()
-	shake_tiempo = SHAKE_DUR  # bonus: sacudida al chocar
+	shake_tiempo = SHAKE_DUR  # y tiembla la pantalla
 
 
-# --- B4: sonidos creados por código ---
+# --- sonidos ---
 
 func _crear_sonidos() -> void:
 	snd_paso = _nuevo_sonido("res://assets/sounds/paso.wav")
@@ -229,7 +229,7 @@ func _nuevo_sonido(ruta: String) -> AudioStreamPlayer:
 	return reproductor
 
 
-# --- M4: selector de laberintos (lee la carpeta mazes/ sin tocar código) ---
+# --- selector de laberintos (lee la carpeta mazes/ sola) ---
 
 func _crear_selector() -> void:
 	selector = OptionButton.new()
@@ -237,7 +237,7 @@ func _crear_selector() -> void:
 	selector.size = Vector2(176, 28)
 	for nombre in _listar_mazes():
 		selector.add_item(nombre)
-	# Dejamos seleccionado el laberinto con el que arrancamos.
+	# dejo marcado el lab con el que arranque
 	var actual = archivo_laberinto.get_file()
 	for i in selector.item_count:
 		if selector.get_item_text(i) == actual:
@@ -266,7 +266,7 @@ func _on_selector_cambiado(idx: int) -> void:
 	_iniciar_corrida()
 
 
-# --- M4: récords persistentes en user:// ---
+# --- records que se guardan en user:// ---
 
 func _cargar_records() -> void:
 	records = {}
@@ -296,7 +296,7 @@ func _guardar_record(pasos: int) -> void:
 	record_cambiado.emit(_record_actual())
 
 
-# --- B3: pantalla final (creada por código) ---
+# --- pantalla final ---
 
 func _crear_pantalla_final() -> void:
 	pantalla_final = ColorRect.new()
@@ -324,7 +324,7 @@ func _crear_pantalla_final() -> void:
 func _mostrar_pantalla_final(expl: int, speed: int) -> void:
 	var texto = "¡META ALCANZADA!\n\n"
 	if es_estudiante:
-		# M3: comparación de pasos exploración vs. speed run.
+		# comparo los pasos de exploracion con los del speed run
 		texto += "Exploración: %d pasos\n" % expl
 		texto += "Speed run: %d pasos\n" % speed
 		texto += "Ahorro: %d pasos" % (expl - speed)
@@ -334,10 +334,10 @@ func _mostrar_pantalla_final(expl: int, speed: int) -> void:
 	pantalla_final.visible = true
 
 
-# --- Bonus: juice (sacudida, estela, heat-map y celebración) ---
+# --- bonus: estela, sacudida, heat map y la fiesta de la meta ---
 
 func _crear_camara() -> void:
-	# Cámara fija (no recoloca la escena) que usamos solo para la sacudida.
+	# camara fija (no mueve la escena), la uso solo para la sacudida
 	camara = Camera2D.new()
 	camara.anchor_mode = Camera2D.ANCHOR_MODE_FIXED_TOP_LEFT
 	camara.position = Vector2.ZERO
@@ -361,7 +361,7 @@ func _crear_boton_heatmap() -> void:
 
 
 func _on_heatmap_toggled(activado: bool) -> void:
-	# El mapa del ratón colorea las celdas por cuántas veces las pisó.
+	# pinto las celdas segun cuantas veces las piso el raton
 	vista_mapa_raton.mostrar_heatmap = activado
 	vista_mapa_raton.queue_redraw()
 

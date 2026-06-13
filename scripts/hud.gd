@@ -1,7 +1,7 @@
 extends PanelContainer
 
-# Panel lateral de telemetría (B1). Las etiquetas ya existen en la escena; aquí
-# nos conectamos a las señales de game.gd y refrescamos su texto en cada cambio.
+# el panel de la telemetria. las etiquetas ya estan en la escena, aca solo me
+# enchufo a las señales de game.gd y les cambio el texto cuando algo cambia.
 
 @onready var fase_label: Label = $margen/columna/fase_label
 @onready var pasos_label: Label = $margen/columna/pasos_label
@@ -11,7 +11,7 @@ extends PanelContainer
 
 
 func _ready() -> void:
-	# CanvasLayer -> Game: nos suscribimos a las señales de telemetría.
+	# subo dos niveles (CanvasLayer -> Game) y me suscribo a las señales
 	var game = get_parent().get_parent()
 	game.pasos_cambiados.connect(update_pasos)
 	game.visitadas_cambiadas.connect(update_visitadas)
@@ -37,7 +37,7 @@ func update_tiempo(segundos: float) -> void:
 
 
 func update_record(pasos: int) -> void:
-	# -1 significa que todavía no hay récord guardado para este laberinto (M4).
+	# -1 es que todavia no hay record guardado para este lab
 	if pasos < 0:
 		record_label.text = "récord: —"
 	else:
